@@ -1,0 +1,41 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  postgres_master:
+    image: postgres:14
+    container_name: postgres_master
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: masterpass
+      POSTGRES_DB: testdb
+    volumes:
+      - ./master-config/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./master-config/pg_hba.conf:/etc/postgresql/pg_hba.conf
+    ports:
+      - "5432:5432"
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    networks:
+      - postgres_network
+
+  postgres_slave:
+    image: postgres:14
+    container_name: postgres_slave
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: slavepass
+      POSTGRES_DB: testdb
+    volumes:
+      - ./slave-config/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./slave-config/pg_hba.conf:/etc/postgresql/pg_hba.conf
+    ports:
+      - "5433:5432"
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    networks:
+      - postgres_network
+    depends_on:
+      - postgres_master
+
+networks:
+  postgres_network:
+    driver: bridge
